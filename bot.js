@@ -1,6 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
 const dotenv = require('dotenv');
-const fs = require('fs');
 
 dotenv.config();
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -118,4 +117,41 @@ bot.onText(/\/broadcast/, (msg) => {
     });
 
     bot.sendMessage(msg.chat.id, "Broadcast sent to all participants.");
+});
+
+// Handle inline queries for channel participation
+bot.on('inline_query', (query) => {
+    const user = query.from;
+
+    if (raffleActive) {
+        if (participants.some(p => p.id === user.id)) {
+            bot.answerInlineQuery(query.id, [{
+                type: 'article',
+                id: '1',
+                title: 'You are already participating!',
+                input_message_content: {
+                    message_text: "You've already joined the raffle!"
+                }
+            }]);
+        } else {
+            participants.push({ username: user.username, id: user.id });
+            bot.answerInlineQuery(query.id, [{
+                type: 'article',
+                id: '1',
+                title: 'Thanks for participating!',
+                input_message_content: {
+                    message_text: `🎉 @${user.username} has joined the raffle!`
+                }
+            }]);
+        }
+    } else {
+        bot.answerInlineQuery(query.id, [{
+            type: 'article',
+            id: '1',
+            title: 'No active raffle.',
+            input_message_content: {
+                message_text: "There is no active raffle. Use /raffle to start one."
+            }
+        }]);
+    }
 });
