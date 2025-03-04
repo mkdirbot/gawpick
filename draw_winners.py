@@ -1,32 +1,16 @@
-import requests
-import json
 import sys
+import random
 
-RANDOM_ORG_API_KEY = "86a383a1-1593-408e-8464-d4e042a3a6f3"
+def draw_winners(num_winners):
+    with open('participants.txt', 'r') as file:
+        participants = file.read().splitlines()
+    
+    if len(participants) < num_winners:
+        return "Not enough participants!"
+    
+    winners = random.sample(participants, num_winners)
+    return '\n'.join([winner.split(',')[0] for winner in winners])
 
-# Read participants from stdin
-participants = sys.stdin.read().splitlines()
-
-if not participants:
-    print("No participants yet!")
-    sys.exit()
-
-response = requests.post(
-    "https://api.random.org/json-rpc/4/invoke",
-    json={
-        "jsonrpc": "2.0",
-        "method": "generateIntegers",
-        "params": {
-            "apiKey": RANDOM_ORG_API_KEY,
-            "n": 5,  # Number of winners
-            "min": 0,
-            "max": len(participants) - 1,
-            "replacement": False
-        },
-        "id": 1
-    }
-)
-
-winners = response.json()["result"]["random"]["data"]
-for i in winners:
-    print(participants[i])
+if __name__ == "__main__":
+    num_winners = int(sys.argv[1])
+    print(draw_winners(num_winners))
